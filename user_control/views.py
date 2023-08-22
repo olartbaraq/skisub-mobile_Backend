@@ -1,8 +1,7 @@
-from .serializers import SignUpSerializer, LoginSerializer
+from .serializers import User, SignUpSerializer, LoginSerializer, UpdatePasswordSerializer, DeleteUserSerializer
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.request import Request
-from rest_framework.views import APIView
 from django.contrib.auth import authenticate
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from django_filters.rest_framework import DjangoFilterBackend
@@ -124,3 +123,67 @@ class GetUserView(generics.GenericAPIView):
         }
 
         return Response(data=content, status=status.HTTP_200_OK)
+    
+    
+class UpdatePasswordView(generics.GenericAPIView):
+    serializer_class = UpdatePasswordSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        valid_request = self.serializer_class(data=request.data)
+        valid_request.is_valid(raise_exception=True)
+        
+        user = User.objects.filter(email = valid_request.validated_data["email"])
+        
+        if not user:
+            return Response(
+            {"error": "User not found"},
+            status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        user = user[0]
+        user.set_password(valid_request.validated_data["password"])
+        user.save()
+         
+        return Response(
+            {"message": "User password changed successfully"},
+            status=status.HTTP_200_OK
+        )
+        
+
+class DeleteUserView(generics.GenericAPIView):
+    """_summary_
+
+    Args:
+        ModelViewSet (_type_): _description_
+    """
+    serializer_class = DeleteUserSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request: Request):
+        """method to delete a user
+
+        Args:
+            request (Request): _description_
+        """
+        
+        valid_request = self.serializer_class(data=request.data)
+        valid_request.is_valid(raise_exception=True)
+        
+        user = User.objects.filter(email = valid_request.validated_data["email"])
+        
+        if not user:
+            #raise Exception("User not found")
+        
+            return Response(
+            {"error": "User not found"},
+            status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        user = user[0]
+        user.delete()
+         
+        return Response(
+            {"message": "User account deleted successfully"},
+            status=status.HTTP_200_OK
+        )

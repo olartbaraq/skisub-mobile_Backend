@@ -70,3 +70,27 @@ class LoginSerializer(serializers.ModelSerializer):
     class Meta:
         model= User
         fields = ['email', 'password']
+
+
+class UpdatePasswordSerializer(serializers.ModelSerializer):
+    """_summary_
+
+    Args:
+        serializers (_type_): _description_
+    """
+    
+    email = serializers.EmailField()
+    password = serializers.CharField(write_only=True, min_length= 8)
+
+    class Meta:
+        model= User
+        fields = ['email', 'password']
+    
+    
+class DeleteUserSerializer(serializers.ModelSerializer):
+    
+    email = serializers.EmailField()
+    
+    class Meta:
+        model = User
+        fields = ["email"]
